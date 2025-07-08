@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Card, from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Users, BookOpen, Calendar, Star, Globe, Shield } from "lucide-react";
 import { useState } from "react";
