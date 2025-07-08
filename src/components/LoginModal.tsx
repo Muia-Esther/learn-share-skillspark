@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -15,11 +17,41 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log("Login attempt:", { email, password });
+    setIsLoading(true);
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        toast({
+          title: "Login Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Successfully logged in!",
+        });
+        onClose();
+      }
+    } catch (error) {
+      toast({
+        title: "Login Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -44,6 +76,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
                 onChange={(e) => setEmail(e.target.value)}
                 className="pl-10"
                 required
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -60,11 +93,13 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="pl-10 pr-10"
                 required
+                disabled={isLoading}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                disabled={isLoading}
               >
                 {showPassword ? (
                   <EyeOff className="h-4 w-4 text-gray-400" />
@@ -78,8 +113,9 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
           <Button 
             type="submit" 
             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            disabled={isLoading}
           >
-            Sign In
+            {isLoading ? "Signing In..." : "Sign In"}
           </Button>
           
           <div className="text-center text-sm text-gray-600">
@@ -88,6 +124,7 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
               type="button"
               onClick={onClose}
               className="text-blue-600 hover:underline font-medium"
+              disabled={isLoading}
             >
               Sign up here
             </button>
